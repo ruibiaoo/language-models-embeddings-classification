@@ -1,6 +1,4 @@
 # Import Libraries
-from email import generator
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -9,6 +7,7 @@ import random
 import math
 import matplotlib.pyplot as plt
 
+from email import generator
 from torch.utils.data import DataLoader, Dataset
 from nltk.corpus import reuters
 from nltk.tokenize import word_tokenize
@@ -114,7 +113,7 @@ class ReutersDataset(Dataset):
 
 
 # Training windows move forward by one token.
-train_loader = DataLoader(ReutersDataset(train_ids, seq_len = 64, stride=1), batch_size=32,shuffle=True)
+train_loader = DataLoader(ReutersDataset(train_ids, seq_len = 64, stride=64), batch_size=32,shuffle=True)
 val_loader = DataLoader(ReutersDataset(val_ids, seq_len = 64, stride = 64), batch_size=32, shuffle=False)
 test_loader = DataLoader(ReutersDataset(test_ids, seq_len = 64, stride= 64), batch_size=32, shuffle=False)
 
