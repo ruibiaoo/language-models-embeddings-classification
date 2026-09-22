@@ -2,81 +2,22 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import nltk
-import random
 import math
 import matplotlib.pyplot as plt
 
-from email import generator
 from torch.utils.data import DataLoader, Dataset
-from nltk.corpus import reuters
 from nltk.tokenize import word_tokenize
 from nltk.tokenize.treebank import TreebankWordDetokenizer
-from collections import Counter
 from tqdm import tqdm
 from time import perf_counter
+from data import prepare_reuters
 
 
 # Set device to GPU if available, otherwise use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Download the Reuters dataset and necessary NLTK resources
-nltk.download('reuters')
-nltk.download('punkt')
-nltk.download('punkt_tab')
-
-documents = reuters.fileids()
-print(f"Number of documents: {len(documents)}")
-
-# Preprocess the Reuters dataset
-def preprocess_reuters(doc_ids):
-    data = []
-    for doc_id in doc_ids:
-        tokens = word_tokenize(reuters.raw(doc_id).lower())
-        data.append(tokens)
-    return data
-
-
-# Split into training and test sets
-random.Random(42).shuffle(documents)
-percent_index_70 = int(0.7 * len(documents))
-percent_index_15 = int(0.15 * len(documents))
-
-train_docs = documents[:percent_index_70]
-val_docs = documents[percent_index_70:percent_index_70 + percent_index_15]
-test_docs = documents[percent_index_70 + percent_index_15:]
-
-
-# Token each split separately
-train_data = preprocess_reuters(train_docs)
-val_data = preprocess_reuters(val_docs)
-test_data = preprocess_reuters(test_docs)
-
-print(f"Training articles:   {len(train_docs)}")
-print(f"Validation articles: {len(val_docs)}")
-print(f"Test articles:       {len(test_docs)}")
-
-
-# Build Vocabulary
-counter = Counter(token for article in train_data for token in article)
-
-vocab = {"<unk>": 0, "<pad>": 1, "<bos>": 2, "<eos>": 3}
-for token, _ in counter.most_common():
-    if token not in vocab:
-        vocab[token] = len(vocab)
-
-inv_vocab = {idx: token for token, idx in vocab.items()}
-
-
-# Convert tokenized articles into token IDs
-def encode_articles(data, vocab):
-    return [[vocab["<bos>"]] + [vocab.get(token, vocab["<unk>"]) for token in article] + [vocab["<eos>"]]  for article in data]
-
-train_ids = encode_articles(train_data, vocab)
-val_ids = encode_articles(val_data, vocab)
-test_ids = encode_articles(test_data, vocab)
-
-print(f"Vocabulary size: {len(vocab)}")
+# All models use the same shared Reuters preparation.
+train_ids, val_ids, test_ids, vocab, inv_vocab = prepare_reuters()
 
 
 # Dataset class for loading Reuters articles
@@ -112,7 +53,7 @@ class ReutersDataset(Dataset):
         )
 
 
-# Training windows move forward by one token.
+#  All splits use 64-token windows with stride 64
 train_loader = DataLoader(ReutersDataset(train_ids, seq_len = 64, stride=64), batch_size=32,shuffle=True)
 val_loader = DataLoader(ReutersDataset(val_ids, seq_len = 64, stride = 64), batch_size=32, shuffle=False)
 test_loader = DataLoader(ReutersDataset(test_ids, seq_len = 64, stride= 64), batch_size=32, shuffle=False)
@@ -239,7 +180,7 @@ test_loss = 0.0
 test_tokens = 0
 test_criterion = nn.CrossEntropyLoss(ignore_index=pad_idx, reduction='sum')
 
-model.load_state_dict(torch.load("best_rnn_model.pt", weights_only=True))
+model.load_state_dict(torch.load("best_rnn_model.pt", map_location=device, weights_only=True))
 model.eval()
 
 if device.type == "cuda":
