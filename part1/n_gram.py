@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pickle
 
 from nltk.lm import KneserNeyInterpolated, Vocabulary
 from nltk.util import everygrams
@@ -9,6 +10,7 @@ from tqdm import tqdm
 from time import perf_counter
 from data import prepare_reuters
 from collections import Counter, defaultdict
+from pathlib import Path
 
 # All models use the same shared Reuters preparation.
 train_ids, val_ids, test_ids, vocab, inv_vocab = prepare_reuters()
@@ -192,7 +194,21 @@ best_n = min(results, key=lambda n: results[n]["val_ce"])
 best_model = models[best_n]
 print(f"Best n-gram model: {best_n}-gram")
 print(f"Best Validation Cross-Entropy: {results[best_n]['val_ce']:.4f}")
+print(f"Selected model training time: {training_times[best_n]:.2f} seconds")
 
+# Save the best model
+model_path = Path(f"best_{best_n}_gram_model.pkl")
+
+checkpoint = {
+    "model": best_model,
+    "vocab": vocab,
+    "inv_vocab": inv_vocab,
+    "uniform_weight": uniform_weight,
+    "best_n": best_n,
+}
+
+with model_path.open("wb") as file:
+    pickle.dump(checkpoint, file, protocol=pickle.HIGHEST_PROTOCOL)
 
 # Count
 total_entries = 0
@@ -206,7 +222,7 @@ for order in range(1, best_n + 1):
 
     total_entries += entries
     print(f"Number of entries in {order}-gram counts: {entries}")
-print(f"Total number of entries in {best_n}-gram counts: {total_entries}")
+print(f"Total non-zero count entries across all orders: {total_entries}")
 
 
 # Evaluate the best model on the test set

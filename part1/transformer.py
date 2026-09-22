@@ -199,7 +199,7 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 
-plt.savefig("transformer_training_validation_loss.png", dpi=300)
+plt.savefig("transformer_loss_curve.png", dpi=300)
 plt.show()
 
 
