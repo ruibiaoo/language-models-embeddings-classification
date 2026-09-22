@@ -175,7 +175,6 @@ plt.show()
 
 
 # Evaluate the best-validation checkpoint on the test set.
-# As in rnn.py, inference timing includes loading batches and calculating loss.
 test_loss = 0.0
 test_tokens = 0
 test_criterion = nn.CrossEntropyLoss(ignore_index=pad_idx, reduction='sum')
@@ -188,7 +187,7 @@ if device.type == "cuda":
 inference_start = perf_counter()
 
 with torch.no_grad():
-    for x, y in tqdm(test_loader, desc="Testing"):
+    for x, y in tqdm(test_loader, desc="Evaluating on test set"):
         x = x.to(device)
         y = y.to(device)
         output = model(x)

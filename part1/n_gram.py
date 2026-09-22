@@ -356,6 +356,5 @@ for prompt in prompts:
         top_k=20,
         seed=42,
     )
-
-    print(f"Prompt: {prompt}")
-    print(f"Generated continuation: {continuation}\n")
+    
+    print(f"Prompt: {prompt}\nGenerated continuation: {continuation}\n")

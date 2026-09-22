@@ -188,7 +188,7 @@ if device.type == "cuda":
 inference_start = perf_counter()
 
 with torch.no_grad():
-    for x, y in tqdm(test_loader, desc="Testing"):
+    for x, y in tqdm(test_loader, desc="Evaluating on test set"):
         x = x.to(device)
         y = y.to(device)
         output = model(x)
