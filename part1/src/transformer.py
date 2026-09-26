@@ -116,8 +116,8 @@ embedding_dim = 128
 hidden_dim = 256
 num_layers = 3
 num_heads = 4
-pad_idx = vocab["<pad>"]
 max_seq_len = 64
+pad_idx = vocab["<pad>"]
 
 # Initalize the model
 torch.manual_seed(42)

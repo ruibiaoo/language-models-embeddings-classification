@@ -95,6 +95,7 @@ def train_ngram(train_ids, vocab, inv_vocab, n, discount):
 # Train n-gram models for n=2,3,4
 n_gram_orders = [2, 3, 4]  
 discount = 0.75
+uniform_weight = 0.001  
 
 models = {}
 training_times = {}
@@ -120,7 +121,7 @@ def next_token_probability(model, word, history, uniform_weight, vocab_size):
     kn_probability = model.score(word, history)
     return ((1.0-uniform_weight) * kn_probability) + (uniform_weight * (1.0 / vocab_size))
 
-uniform_weight = 0.001  
+
 
 # Evaluation 
 def evaluate_ngram_model(model, articles_ids, inv_vocab, vocab, uniform_weight, seq_len = 64):
