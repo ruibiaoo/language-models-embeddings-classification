@@ -21,7 +21,7 @@ results_dir = part1_dir / "results"
 models_dir = part1_dir / "best_models"
 results_dir.mkdir(parents=True, exist_ok=True)
 models_dir.mkdir(parents=True, exist_ok=True)
-checkpoint_path = models_dir / "best_lstm_model.pt"
+checkpoint_path = models_dir / "best_lstm_model_skipgram_embedding.pt"
 
 # Set device to GPU if available, otherwise use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -134,7 +134,6 @@ print(f"Skip-gram embedding coverage: "
 
 
 # Set up the model, loss function, and optimizer
-model.embedding.weight.requires_grad = False
 model.to(device)
 criterion = nn.CrossEntropyLoss(ignore_index=pad_idx)
 optimizer = optim.Adam((p for p in model.parameters() if p.requires_grad), lr=0.001)

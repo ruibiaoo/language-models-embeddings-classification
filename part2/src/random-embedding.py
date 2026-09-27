@@ -20,7 +20,7 @@ results_dir = part1_dir / "results"
 models_dir = part1_dir / "best_models"
 results_dir.mkdir(parents=True, exist_ok=True)
 models_dir.mkdir(parents=True, exist_ok=True)
-checkpoint_path = models_dir / "best_lstm_model_300_embedding.pt"
+checkpoint_path = models_dir / "best_lstm_model_random_embedding.pt"
 
 # Set device to GPU if available, otherwise use CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
