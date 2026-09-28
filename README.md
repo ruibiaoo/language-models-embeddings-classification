@@ -35,7 +35,7 @@ Ensure the following are installed before running the project:
 
    ```bash
    git clone https://github.com/ruibiaoo/dsa4213_assignment
-   cd https://github.com/ruibiaoo/dsa4213_assignment
+   cd dsa4213_assignment
    ```
 
 2. **Create a virtual environment**
@@ -269,7 +269,7 @@ Three embedding strategies are compared. They differ in how the embedding vector
 | Self-trained Skip-gram | Word2Vec vectors fitted to training stories | No; the entire input table is frozen |
 | Public Word2Vec ) | Google News `word2vec-google-news-300` vectors | No; the entire input table is frozen |
 
-For the self-trained Skip-gram variant, embeddings are trained using Gensim Word2Vec on the training split only. Special tokens such as <bos> and <eos> are excluded from Skip-gram training to prevent validation or test data from influencing the learned embeddings.
+For the self-trained Skip-gram variant, embeddings are trained using Gensim Word2Vec on the training split only. 
 
 The Skip-gram model is trained using the following configuration:
 
@@ -325,7 +325,7 @@ A simplified repository structure is:
 │   │   ├── lstm.py
 │   │   └── transformer.py
 │   ├── best_models/
-│   │   ├── best_4_ngram_model.pkl
+│   │   ├── best_4_gram_model.pkl
 │   │   ├── best_lstm_model.pt
 │   │   ├── best_rnn_model.pt
 │   │   └── best_transformer_model.pth
