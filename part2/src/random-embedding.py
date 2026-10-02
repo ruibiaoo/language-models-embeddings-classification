@@ -175,7 +175,7 @@ plt.plot(epochs, val_losses, label="Validation loss")
 
 plt.xlabel("Epoch")
 plt.ylabel("Average next-token cross-entropy")
-plt.title("LSTM Training and Validation Loss")
+plt.title("LSTM with Random Embedding")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
