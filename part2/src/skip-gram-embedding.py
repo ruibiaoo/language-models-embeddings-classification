@@ -217,7 +217,7 @@ plt.plot(epochs, val_losses, label="Validation loss")
 
 plt.xlabel("Epoch")
 plt.ylabel("Average next-token cross-entropy")
-plt.title("LSTM with Skip-gramEmbedding")
+plt.title("LSTM with Skip-gram Embedding")
 plt.legend()
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
