@@ -15,9 +15,9 @@ from pathlib import Path
 from data import prepare_dataset
 
 # Resolve output locations relative to this file, not the working directory.
-part1_dir = Path(__file__).resolve().parent.parent
-results_dir = part1_dir / "results"
-models_dir = part1_dir / "best_models"
+part2_dir = Path(__file__).resolve().parent.parent
+results_dir = part2_dir / "results"
+models_dir = part2_dir / "best_models"
 results_dir.mkdir(parents=True, exist_ok=True)
 models_dir.mkdir(parents=True, exist_ok=True)
 checkpoint_path = models_dir / "best_lstm_model_random_embedding.pt"

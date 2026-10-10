@@ -343,12 +343,22 @@ A simplified repository structure is:
 │   ├── best_models/
 │   │   ├── best_lstm_model_random_embedding.pt
 │   │   ├── best_lstm_model_skipgram_embedding.pt
-│   │   └── 
+│   │   └── best_lstm_model_pretrained_word2vec_embedding.pt
 │   └── results/
 │       ├── lstm_random_300_loss_curve.png
 │       ├── lstm_skipgram_300_loss_curve.png
-│       └── 
-│    
+│       └── lstm_pretrained_word2vec_300_loss_curve.png
+│
+├── part3/
+│   ├── src/
+│   │   ├── data.py
+│   │   ├── lstm_skipgram.py
+│   │   └── transformer_random.py
+│   └── results/
+│       ├── transformer_random_metrics.json
+│       ├── transformer_random_predictions.csv
+│       └── transformer_random_confusion_matrix.png
+│
 ├── .gitignore
 ├── requirements.txt
 └── README.md

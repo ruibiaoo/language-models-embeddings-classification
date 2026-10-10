@@ -5,3 +5,6 @@ tqdm
 matplotlib
 datasets
 gensim
+smart_open
+scikit-learn
+ftfy
