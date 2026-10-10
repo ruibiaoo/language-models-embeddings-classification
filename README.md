@@ -3,18 +3,19 @@
 ## 🧐 About the Project
 This repository contains the implementation for DSA4213 Assignment 1, which investigates how different language modelling architectures and word-embedding strategies affect language-model performance and learned text representations.
 The project currently covers:
-- Part I: comparison of an interpolated Kneser-Ney n-gram model, RNN, LSTM, and causal Transformer with self-attention.
-- Part II: comparison of LSTM language models using random trainable embeddings, self-trained frozen Skip-gram embeddings, and a public pretrained Word2Vec embedding.
-- Part III: 
+- Part I: Compare an interpolated Kneser-Ney n-gram model, RNN, LSTM, and causal Transformer for language modelling.
+- Part II: Investigate the effects of randomly initialized trainable embeddings, self-trained frozen Skip-gram embeddings, and publicly pretrained Word2Vec embeddings on LSTM language model performance.
+- Part III:  Evaluate and compare the effectiveness of learned language model representations for downstream text classification
 
 Main technologies
 - PyTorch — Neural language models and training
-- Hugging Face Datasets — TinyStories Dataset
+- Hugging Face Datasets — TinyStories and AG News Dataset
 - NLTK — Tokenization and n-gram language modelling
 - Gensim — Word2Vec / Skip-gram embeddings
 - NumPy — Numerical operations 
 - Matplotlib — Visual Plots
-- tqdm — progress bars
+- tqdm — Progress bars
+- scikit-learn — Logistic regression and classification evaluation
 
 ## 🚀 Getting Started
 
@@ -72,7 +73,8 @@ Ensure the following are installed before running the project:
 
 ## 📚 Dataset and Preprocessing
 
-Parts I and II use [roneneldan/TinyStories on Hugging Face](https://huggingface.co/datasets/roneneldan/TinyStories). TinyStories contains synthetic English stories generated using GPT-3.5 and GPT-4; see the [dataset paper](https://arxiv.org/abs/2305.07759) here.
+Parts I & II: TinyStories
+Parts I and II use [roneneldan/TinyStories on Hugging Face ](https://huggingface.co/datasets/roneneldan/TinyStories). TinyStories contains synthetic English stories generated using GPT-3.5 and GPT-4; see the [dataset paper](https://arxiv.org/abs/2305.07759) here.
 
 The data loaders use:
 
@@ -82,22 +84,47 @@ datasets.load_dataset(..., streaming=True)
 
 Therefore, no manual dataset download or corpus placement is required. However, internet access is needed to stream data and obtain missing NLTK resources. 
 
+Part III uses [sh0416/ag_news on Hugging Face](https://huggingface.co/datasets/sh0416/ag_news). AG News is a widely used benchmark dataset in Natural Language Processing (NLP) for text classification and topic modeling, and consists of 4 classes - World, Sports, Business and Sci/Tech; see the [dataset paper](https://arxiv.org/pdf/1509.01626) here.
+
+The data loaders use:
+
+```python
+load_dataset(...)
+```
+Similarly, internet access is needed to obtain missing NLTK resources.
+
 ### Data split
 
-The current preprocessing pipeline selects:
+#### Parts I & II: TinyStories
 
-| Split | Number of stories |
-| --- | ---: |
+The TinyStories dataset is used to train and evaluate different language modelling architectures and embedding strategies. The preprocessing pipeline selects **24,000 stories** across the following splits:
+
+| Split | Number of Stories |
+|---|---:|
 | Training | 20,000 |
 | Validation | 2,000 |
 | Test | 2,000 |
 
-The source training split and validation split are independently shuffled using:
+#### Part III: AG News
 
-- Seed: `42`
-- Shuffle buffer: `10,000`
+The AG News dataset is used for downstream text classification. The preprocessing pipeline selects **67,600 articles** across four equally represented categories.
 
-Using the same seed and buffer size ensures that the streaming dataset follows the same deterministic shuffling procedure when the dataset revision and software environment are unchanged. Since TinyStories is accessed through Hugging Face streaming, exact reproduction also depends on using the same dataset revision, preprocessing code, tokenizer/package versions, and vocabulary construction procedure.
+Training and validation subsets are sampled from the original training split, while the original test split is retained for final evaluation.
+
+| Category | Training | Validation | Test |
+|---|---:|---:|---:|
+| World | 12,500 | 2,500 | 1,900 |
+| Sports | 12,500 | 2,500 | 1,900 |
+| Business | 12,500 | 2,500 | 1,900 |
+| Sci/Tech | 12,500 | 2,500 | 1,900 |
+| **Total** | **50,000** | **10,000** | **7,600** |
+
+
+For TinyStories, the source training and validation splits are independently shuffled using:
+
+- **Random seed:** `42`
+- **Shuffle buffer size:** `10,000`
+
 
 ### Preprocessing pipeline
 
@@ -149,6 +176,7 @@ Run each embedding experiment using:
 ```sh
 python part2/src/random-embedding.py
 python part2/src/skip-gram-embedding.py
+python part2/src/word2vec-pretrained-embedding.py
 ```
 
 Part II compares the following embedding strategies using the same LSTM language model architecture:
@@ -160,9 +188,17 @@ Part II compares the following embedding strategies using the same LSTM language
 
 ### Part III: Downstream Representation Analysis
 
-Run the downstream representation experiments using:
+Run the downstream classification experiments using:
 
+```sh
+python part3/src/lstm_random_embedding_classification.py
+python part3/src/lstm_pretrained_embedding_classification.py
+```
 
+Part III compares the downstream text classification performance of two LSTM language models pretrained in Part II:
+
+- Random Embeddings: LSTM trained with randomly initialized, trainable embeddings.
+- Pretrained Word2Vec Embeddings: LSTM trained with frozen, publicly pretrained Word2Vec embeddings.
 
 
 ### Experiment Workflow
@@ -206,7 +242,7 @@ Training-loss plots are displayed during execution. Close the plot window to con
 
 
 ## ⚙️ Model Configurations
-## Shared Language Model Training and Evaluation
+### Shared Language Model Training and Evaluation
 Neural models are trained using the shared settings below, while the n-gram model is evaluated using the same tokenized data, target tokens, and test split.
 | Setting | Value |
 | --- | --- |
@@ -220,11 +256,11 @@ Neural models are trained using the shared settings below, while the n-gram mode
 | Test metrics | Average next-token cross-entropy and perplexity |
 | Padding | Ignored in loss calculation |
 
-Loss is averaged over all non-padding targets.. Every target after `<bos>` is scored once, including `<eos>` and `<unk>`; `<pad>` is ignored. Test evaluation and generation reload the best-validation neural checkpoint rather than using the final epoch automatically.
+Loss is averaged over all non-padding targets. Every target after `<bos>` is scored once, including `<eos>` and `<unk>`; `<pad>` is ignored. Test evaluation and generation reload the best-validation neural checkpoint rather than using the final epoch automatically.
 
 All predictions use preceding context only. RNN/LSTM hidden states reset at each window. The Transformer uses a causal attention mask and padding mask. N-gram evaluation uses the same target tokens and window boundaries, with at most `n - 1` preceding tokens. Story starts are padded to `n - 1` `<bos>` markers for n-grams; later window boundaries do not receive extra story-start markers.
 
-## Part I Neural Configurations
+### Part I Neural Configurations
 The RNN, LSTM, and Transformer use comparable embedding dimensions, layer counts, and training settings so that differences in performance can be interpreted primarily in terms of model architecture. Their architecture-specific configurations are summarized below.
 
 | Setting | RNN | LSTM | Transformer |
@@ -249,7 +285,7 @@ P(word | history) = 0.999 * P_KN(word | history) + 0.001 / vocabulary_size
 `uniform_weight=0.001` supplies nonzero probabilities, including for `<unk>`, which has no training counts. 
 The order with the lowest validation cross-entropy is selected for testing.
 
-## Part II Embedding Configurations
+### Part II Embedding Configurations
 Part II investigates how different word-embedding strategies affect LSTM language-model performance. To ensure a fair comparison, the LSTM architecture, training procedure, dataset, and evaluation settings are kept constant across all embedding variants. The main experimental variable is therefore the initialization and trainability of the input embedding layer.
 
 The shared LSTM configuration used for all Part II experiments is shown below: 
@@ -267,7 +303,7 @@ Three embedding strategies are compared. They differ in how the embedding vector
 | --- | --- | --- |
 | Random | PyTorch `nn.Embedding` random initialization; zero padding row | Yes, except padding |
 | Self-trained Skip-gram | Word2Vec vectors fitted to training stories | No; the entire input table is frozen |
-| Public Word2Vec ) | Google News `word2vec-google-news-300` vectors | No; the entire input table is frozen |
+| Public Word2Vec | Google News `word2vec-google-news-300` vectors | No; the entire input table is frozen |
 
 For the self-trained Skip-gram variant, embeddings are trained using Gensim Word2Vec on the training split only. 
 
@@ -288,12 +324,44 @@ For the self-trained Skip-gram variant, embeddings are trained using only the tr
 
 Embedding coverage is reported as the proportion of training-vocabulary words with available Skip-gram vectors. Word2Vec pretraining time is measured separately from LSTM training time to distinguish embedding-learning cost from language-model training cost.
 
-## 🔁 Reproducibility
-The main random seed used throughout the project is:
 
-```sh
-42
-``` 
+### Part III: Downstream Classification Configurations
+
+Part III compares the downstream classification performance of LSTM language models from Part II using random trainable embeddings and pretrained Word2Vec embeddings on the AG News dataset.
+
+The pretrained LSTMs are frozen and used as feature extractors. Only the logistic regression classifiers are trained.
+
+#### Feature Extraction
+
+| Setting | Value |
+|---|---|
+| Feature extractor | Pretrained LSTM from Part II |
+| Embedding dimension | 300 |
+| LSTM hidden dimension | 256 |
+| LSTM layers | 3 |
+| Maximum sequence length | 64 |
+| Batch size | 32 |
+| Feature extraction | Mean pooling of LSTM hidden states |
+| Pooling exclusions | PAD, BOS, EOS |
+| Output feature dimension | 256 |
+
+#### Classifier Training and Evaluation
+
+| Setting | Value |
+|---|---|
+| Classifier | Logistic Regression |
+| Feature scaling | StandardScaler |
+| Solver | `lbfgs` |
+| Regularization C | 0.001, 0.01, 0.1, 1, 10, 100 |
+| Maximum iterations | 1,000 |
+| Random seed | 42 |
+| Model selection | Highest validation macro-F1 |
+| Test metrics | Accuracy, macro-F1, per-class classification report |
+
+The best classifier is selected using validation macro-F1 and evaluated on the held-out test set. Both embedding variants use the same classification procedure.
+
+## 🔁 Reproducibility
+The main random seed used throughout the project is: 42
 
 | Component | Setting |
 | --- | --- |
@@ -339,8 +407,11 @@ A simplified repository structure is:
 │   │   ├── data.py
 │   │   ├── random-embedding.py
 │   │   ├── skip-gram-embedding.py
-│   │   └── word2vec-pretrained-embedding.py
+│   │   ├── word2vec-pretrained-embedding.py
+│   │   └── export_vocab.py
 │   ├── best_models/
+│   │   ├── lstm_random_vocab.json
+│   │   ├── lstm_pretrained_vocab.json
 │   │   ├── best_lstm_model_random_embedding.pt
 │   │   ├── best_lstm_model_skipgram_embedding.pt
 │   │   └── best_lstm_model_pretrained_word2vec_embedding.pt
@@ -352,32 +423,23 @@ A simplified repository structure is:
 ├── part3/
 │   ├── src/
 │   │   ├── data.py
-│   │   ├── lstm_skipgram.py
-│   │   └── transformer_random.py
+│   │   ├── lstm_pretrained_embedding_classification.py
+│   │   └── lstm_random_embedding_classification.py
 │   └── results/
-│       ├── transformer_random_metrics.json
-│       ├── transformer_random_predictions.csv
-│       └── transformer_random_confusion_matrix.png
+│       ├── lstm_pretrained_metrics.json
+│       ├── lstm_pretrained_predictions.csv
+│       ├── lstm_pretrained_confusion_matrix.png
+│       ├── lstm_random_metrics.json
+│       ├── lstm_random_predictions.csv
+│       └── lstm_random_confusion_matrix.png
 │
 ├── .gitignore
 ├── requirements.txt
 └── README.md
 ```
 
----
-
-## 🙏 References and Acknowledgments
-
-### Dataset and documentation
-
-- [TinyStories dataset](https://huggingface.co/datasets/roneneldan/TinyStories)
-- [TinyStories paper](https://arxiv.org/abs/2305.07759)
-- [NLTK language-model documentation](https://www.nltk.org/api/nltk.lm.html)
-- [Gensim Word2Vec documentation](https://radimrehurek.com/gensim/models/word2vec.html)
-- [Gensim pretrained model catalogue](https://github.com/piskvorky/gensim-data#models)
-
----
-
 ## 📄 License
 
-This repository is primarily intended for **DSA4213 coursework**.
+This repository was developed for DSA4213 Assignment 1 at the National University of Singapore (NUS) and is intended for academic and educational purposes.
+
+The code is not currently released under an open-source license. External datasets, pretrained models, and libraries remain subject to their respective licenses and terms of use.

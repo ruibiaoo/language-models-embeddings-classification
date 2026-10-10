@@ -108,7 +108,7 @@ def extract_features(model, data_loader, vocab, device, split_name):
     ):
         token_ids = token_ids.to(device, non_blocking=True)
 
-        # Shape: [batch_size, sequence_length, 128]
+        # Shape: [batch_size, sequence_length, 256]
         hidden = model.hidden_states(token_ids)
 
         # Pool only article tokens.
@@ -129,7 +129,7 @@ def extract_features(model, data_loader, vocab, device, split_name):
             keepdim=True,
         ).clamp_min(1)
 
-        # Shape: [batch_size, 128]
+        # Shape: [batch_size, 256]
         pooled = hidden.sum(dim=1) / token_counts
 
         if not torch.isfinite(pooled).all():
