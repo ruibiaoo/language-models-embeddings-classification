@@ -1,0 +1,77 @@
+{
+  "experiment": "LSTM with Pretrained Word2Vec Embedding on classification of AG News",
+  "best_c": 100.0,
+  "validation_results": [
+    {
+      "C": 0.001,
+      "validation_accuracy": 0.6005,
+      "validation_macro_f1": 0.5996613484454669
+    },
+    {
+      "C": 0.01,
+      "validation_accuracy": 0.6081,
+      "validation_macro_f1": 0.6073177568085897
+    },
+    {
+      "C": 0.1,
+      "validation_accuracy": 0.6093,
+      "validation_macro_f1": 0.608530924712909
+    },
+    {
+      "C": 1.0,
+      "validation_accuracy": 0.6093,
+      "validation_macro_f1": 0.6085358036130263
+    },
+    {
+      "C": 10.0,
+      "validation_accuracy": 0.6092,
+      "validation_macro_f1": 0.6084382640224838
+    },
+    {
+      "C": 100.0,
+      "validation_accuracy": 0.6093,
+      "validation_macro_f1": 0.6085402079470177
+    }
+  ],
+  "test_accuracy": 0.608421052631579,
+  "test_macro_f1": 0.6073747323697138,
+  "classification_report": {
+    "World": {
+      "precision": 0.5766169154228856,
+      "recall": 0.61,
+      "f1-score": 0.5928388746803069,
+      "support": 1900.0
+    },
+    "Sports": {
+      "precision": 0.6756487025948104,
+      "recall": 0.7126315789473684,
+      "f1-score": 0.6936475409836066,
+      "support": 1900.0
+    },
+    "Business": {
+      "precision": 0.5782312925170068,
+      "recall": 0.5368421052631579,
+      "f1-score": 0.5567685589519651,
+      "support": 1900.0
+    },
+    "Sci/Tech": {
+      "precision": 0.5987925356750823,
+      "recall": 0.5742105263157895,
+      "f1-score": 0.5862439548629769,
+      "support": 1900.0
+    },
+    "accuracy": 0.608421052631579,
+    "macro avg": {
+      "precision": 0.6073223615524463,
+      "recall": 0.608421052631579,
+      "f1-score": 0.6073747323697138,
+      "support": 7600.0
+    },
+    "weighted avg": {
+      "precision": 0.6073223615524462,
+      "recall": 0.608421052631579,
+      "f1-score": 0.6073747323697138,
+      "support": 7600.0
+    }
+  }
+}
