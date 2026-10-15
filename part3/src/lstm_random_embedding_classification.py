@@ -255,11 +255,11 @@ metrics = {
 }
 
 # Save metrics and predictions to files
-metrics_path = results_dir / f"LSTM_random_metrics.json"
+metrics_path = results_dir / f"lstm_random_metrics.json"
 with metrics_path.open("w", encoding="utf-8") as file:
     json.dump(metrics, file, indent=2)
 
-path = results_dir / f"LSTM_random_predictions.csv"
+path = results_dir / f"lstm_random_predictions.csv"
 
 with path.open("w", newline="", encoding="utf-8") as file:
     writer = csv.writer(file)
@@ -298,7 +298,7 @@ ConfusionMatrixDisplay(
 ax.set_title("AG News: Frozen LSTM + Logistic Regression")
 fig.tight_layout()
 fig.savefig(
-    results_dir / "LSTM_random_confusion_matrix.png",
+    results_dir / "lstm_random_confusion_matrix.png",
     dpi=300,
 )
 plt.close(fig)
