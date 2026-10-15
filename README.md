@@ -27,7 +27,7 @@ Ensure the following are installed before running the project:
 | --- | --- |
 | Python | 3.12 recommended |
 | pip | Latest version recommended |
-| Internet connection | Required for TinyStories streaming and NLTK resource downloads |
+| Internet connection | Required to download TinyStories, AG News, NLTK resources, and the Google News Word2Vec embeddings |
 | CUDA-compatible GPU | Optional; used automatically by PyTorch when available |
 
 ### Installation
@@ -84,7 +84,7 @@ datasets.load_dataset(..., streaming=True)
 
 Therefore, no manual dataset download or corpus placement is required. However, internet access is needed to stream data and obtain missing NLTK resources. 
 
-Part III uses [sh0416/ag_news on Hugging Face](https://huggingface.co/datasets/sh0416/ag_news). AG News is a widely used benchmark dataset in Natural Language Processing (NLP) for text classification and topic modeling, and consists of 4 classes - World, Sports, Business and Sci/Tech; see the [dataset paper](https://arxiv.org/pdf/1509.01626) here.
+Part III uses [fancyzhx/ag_news on Hugging Face](https://huggingface.co/datasets/fancyzhx/ag_news). AG News is a widely used benchmark dataset in Natural Language Processing (NLP) for text classification and topic modeling, and consists of 4 classes - World, Sports, Business and Sci/Tech; see the [dataset paper](https://arxiv.org/pdf/1509.01626) here.
 
 The data loaders use:
 
@@ -140,12 +140,23 @@ For TinyStories, the source training and validation splits are independently shu
 
 With this vocabulary policy, ordinary training words are never replaced by `<unk>`, so it has no training examples. Vocabulary size, text-token counts, and unknown-token rates are printed during preparation. Use values from the actual run rather than hard-coding an earlier vocabulary size.
 
-Each model calls `prepare_dataset()` itself. Running `data.py` first is optional. To inspect data statistics without training:
+[part3/src/data.py](part3/src/data.py) prepares AG News for both classification experiments:
+
+1. Load `fancyzhx/ag_news`, including its original training and official test splits.
+2. Lowercase text and normalize whitespace. Exclude empty or duplicate articles from the training pool, and exclude training articles whose normalized text matches an official test article.
+3. Using seed **42**, select **50,000 training** and **10,000 validation** articles from the cleaned training pool, with equal numbers from each of the four classes. Retain all **7,600 official test** articles.
+4. Tokenize articles using NLTK `word_tokenize()`, retaining punctuation and numbers.
+5. Encode articles using the vocabulary saved with the corresponding Part II LSTM. Do not build a new vocabulary from AG News; words absent from the Part II vocabulary map to `<unk>`.
+6. For each classifier input, keep at most **62 article tokens**, add `<bos>` and `<eos>`, and pad the sequence to **64 positions**.
+
+Each model script calls `prepare_dataset()` itself, so running a `data.py` file beforehand is optional. To inspect the data splits and statistics without training a model:
 
 ```sh
 python part1/src/data.py
 python part2/src/data.py
+python part3/src/data.py
 ```
+
 
 ## 💻 Usage
 
@@ -188,6 +199,19 @@ Part II compares the following embedding strategies using the same LSTM language
 
 ### Part III: Downstream Representation Analysis
 
+The classification scripts require these files in `part2/best_models/`:
+
+- `best_lstm_model_random_embedding.pt` and `lstm_random_vocab.json`
+- `best_lstm_model_pretrained_word2vec_embedding.pt` and `lstm_pretrained_vocab.json`
+
+Run the corresponding Part II experiments first. If the vocabulary JSON files are missing, generate them with:
+
+```sh
+python part2/src/export_vocab.py
+```
+
+The exported vocabulary must match the vocabulary used to train the saved checkpoints.
+
 Run the downstream classification experiments using:
 
 ```sh
@@ -211,6 +235,16 @@ Each Part I and Part II script runs a complete language-model experiment:
 4. Evaluate the selected model on the test set.
 5. Generate text using the predefined prompts and sampling configuration.
 
+Each Part III script runs a complete downstream classification experiment:
+
+1. Load the saved Part II LSTM checkpoint and its matching vocabulary.
+2. Prepare the AG News splits and encode articles using that vocabulary.
+3. Freeze the LSTM and extract one pooled representation per article.
+4. Train logistic-regression classifiers with different `C` values and select the best using validation macro-F1.
+5. Evaluate the selected classifier on the official test set.
+6. Save the test metrics, article-level predictions, and confusion matrix 
+
+
 Model settings and hyperparameters are defined directly in the scripts rather than supplied through command-line arguments. 
 
 When comparing training or inference times, run experiments sequentially to reduce interference from concurrent workloads.
@@ -218,7 +252,7 @@ When comparing training or inference times, run experiments sequentially to redu
 
 ### Saving Experiment Logs
 
-Console Output contains key experimental information including:
+Part I and Part II console output contains key experimental information including:
 
 - Training and validation losses
 - Test metrics
@@ -235,6 +269,8 @@ or:
 ```sh
 python -u part2/src/skip-gram-embedding.py > part2/skipgram_run.log 2>&1
 ```
+
+Part III prints classifier validation and test metrics. Each classification script also saves test metrics, article-level predictions, and a confusion matrix in part3/results/.
 
 ### Headless Execution
 
@@ -305,7 +341,9 @@ Three embedding strategies are compared. They differ in how the embedding vector
 | Self-trained Skip-gram | Word2Vec vectors fitted to training stories | No; the entire input table is frozen |
 | Public Word2Vec | Google News `word2vec-google-news-300` vectors | No; the entire input table is frozen |
 
-For the self-trained Skip-gram variant, embeddings are trained using Gensim Word2Vec on the training split only. 
+For the self-trained Skip-gram variant, embeddings are trained using Gensim Word2Vec on the training split only.
+
+For the public Google News Word2Vec variant, ordinary vocabulary words without a pretrained vector retain their randomly initialized vectors. `<bos>`, `<eos>`, and `<unk>` also retain random vectors, while `<pad>` is zero. The entire input-embedding table remains frozen.
 
 The Skip-gram model is trained using the following configuration:
 
@@ -320,7 +358,7 @@ The Skip-gram model is trained using the following configuration:
 | `workers` | 4 CPU workers |
 | `seed` | 42 |
 
-For the self-trained Skip-gram variant, embeddings are trained using only the training split and are frozen during subsequent LSTM training. Tokens not covered by the learned embeddings, including <bos>, <eos>, and <unk>, retain their randomly initialized vectors, while <pad> is set to zero.
+For the self-trained Skip-gram variant, embeddings are trained using only the training split and are frozen during subsequent LSTM training. Tokens not covered by the learned embeddings, including `<bos>`, `<eos>`, and `<unk>`, retain their randomly initialized vectors, while `<pad>` is set to zero.
 
 Embedding coverage is reported as the proportion of training-vocabulary words with available Skip-gram vectors. Word2Vec pretraining time is measured separately from LSTM training time to distinguish embedding-learning cost from language-model training cost.
 
@@ -370,6 +408,7 @@ The main random seed used throughout the project is: 42
 | Neural generation | Device-local generator seeded with 42 |
 | N-gram generation | `np.random.default_rng(42)`|
 | Skip-gram training | Gensim seed 42|
+| AG News stratified training/validation sampling | NumPy seed 42 |
 
 ### Reproducibility limitations
 Exact reproduction is not guaranteed from the seed alone because:
