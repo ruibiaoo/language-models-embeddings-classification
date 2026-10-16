@@ -35,8 +35,8 @@ Ensure the following are installed before running the project:
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/ruibiaoo/dsa4213_assignment
-   cd dsa4213_assignment
+   git clone https://github.com/ruibiaoo/language-models-embeddings-classification
+   cd language-models-embeddings-classification
    ```
 
 2. **Create a virtual environment**
